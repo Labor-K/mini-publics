@@ -65,6 +65,34 @@
 				font-weight: 400;
 			}
 
+			#play{
+				width: 50px;
+				cursor: pointer;
+				border-radius: 8px;
+				font-family: 'IBM Plex Serif', serif;
+				font-size: 14px;
+				font-weight: 400;
+			}
+
+			#stop{
+				width: 50px;
+				cursor: pointer;
+				border-radius: 8px;
+				font-family: 'IBM Plex Serif', serif;
+				font-size: 14px;
+				font-weight: 400;
+			}
+
+#stop:hover{
+	background-color:yellow/* Green */
+
+}
+
+#play:hover{
+	background-color:yellow/* Green */
+
+}
+
 			#btn1:hover {
   				background-color:yellow/* Green */
 			}
@@ -106,8 +134,8 @@
 			}
 
 			.active {
-  				background-color: #666;
-  				color: white;
+  				background-color: yellow;
+  				color: yellow;
 			}
 
 
@@ -140,6 +168,10 @@
   				background-color: #5AC18E;
 				display: inline-block;
 			}
+
+			.activated{
+				background-color: yellow !important;
+			}
 			
 			#legend-other{
 				height: 10px;
@@ -171,9 +203,21 @@
 					<h3>Choose Data Representation</h3>
 					<input type="button" id="btn1" value="cumulative" />
 					<input type="button" id="btn2" value="per year" />
+
+
+
 					<h3>Use the Slider to display the year</h3>
-					<label id="year"></label>
+					
+					<label id="yearslide"></label>
 					<input id="slider" type="range" min="1970" max="2020" step="1" value="0" />
+
+					<h3>Autoplay Time</h3>
+
+
+					<label id="year"></label>
+					<input type="button" id="play" value="Play" />
+					<input type="button" id="stop" value="Reset" />
+
 					<div id = "legend">
 						<div id ="legend-orange"></div> <span> = Planungszelle </span></br>
 						<div id ="legend-red"></div> <span> = Consensus Conference</span></br>
@@ -264,10 +308,17 @@
 			
 			$('#btn1').click(function (){
 			    result = '<';
+				$('#btn1').toggleClass("activated")
+				$('#btn2').removeClass( "activated" )
+
+
 			});
 			
 			$('#btn2').click(function (){
 			    result = '=='
+				$('#btn2').toggleClass("activated")
+				$('#btn1').removeClass( "activated" )
+
 			});
 			
 			
@@ -277,6 +328,17 @@
 				map.setFilter('minipublics-circles', filters);
 				// Calculate the year
 				document.getElementById('year').textContent = years[year-1970];
+
+				//console.log(years[year])
+			}
+
+			function filterBySlide(year) {
+				var filters = [result, 'newstartdate', year];
+				//console.log(filters);
+				map.setFilter('minipublics-circles', filters);
+				// Calculate the year
+				document.getElementById('yearslide').textContent = years[year-1970];
+
 				//console.log(years[year])
 			}
 			
@@ -348,14 +410,69 @@
 					});
 				
 				
-					filterBy(1970);
+					filterBySlide(1970);
 				
 					 document.getElementById('slider').addEventListener('input', function (e) {
-					 	var parsing = parseInt(e.target.value, 10);
-					 	filterBy(parsing);
+					 	let parsing = parseInt(e.target.value, 10);
+						 console.log(e.target.value)
+					 	filterBySlide(parsing);
 					 });
 				 
-				 
+
+
+					 filterBy(1970);
+
+
+///AUTOPLAY-BUTTON
+
+
+let curYearIndex = -1;
+
+function advanceYear() {
+	++curYearIndex;
+	if (curYearIndex >= years.length) {
+		curYearIndex = 0;
+	}
+	return years[curYearIndex];
+
+
+}
+let currentYear
+
+function LoopIt(){ var myInterval = window.setInterval(function() { 
+	let currentYear = advanceYear();
+	filterBy(parseInt(currentYear));
+	console.log("currentYear "+currentYear)
+	$('#play').toggleClass("activated")
+}, 1000);
+
+function Exit(){
+	filterBy(parseInt(1970));
+	clearInterval(myInterval);
+	$('#play').removeClass("activated")
+
+}
+document.getElementById('stop').addEventListener('click', Exit);
+}
+
+document.getElementById('play').addEventListener('click', LoopIt);
+
+
+//////
+
+
+
+
+
+
+
+
+
+
+
+
+
+			 
 					map.on('click', 'minipublics-circles', function (e) {
 						let coordinates = e.features[0].geometry.coordinates.slice();
 						var title = e.features[0].properties.eventtitle;
